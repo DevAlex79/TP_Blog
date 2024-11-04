@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ArticleController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -82,13 +84,16 @@ class ArticleController extends Controller
 
         return redirect()->route('articles.index')->with('success', 'Article mis à jour avec succès.');
     }
-
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Article $article)
     {
+        if ($article->comments()->exists()) {
+            return redirect()->route('articles.index')->with('error', 'L\'article ne peut pas être supprimé car il a des commentaires.');
+        }
+
+        $this->authorize('delete', $article);
         $article->delete();
         return redirect()->route('articles.index')->with('success', 'Article supprimé avec succès.');
     }

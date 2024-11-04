@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentController;
+use App\Http\Middleware\CheckAuthorRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,7 +18,7 @@ Route::get('/dashboard', function () {
 Route::resource('articles', ArticleController::class)->except(['create', 'store', 'edit', 'update']);
 
 // Routes protégées pour créer, modifier, mettre à jour les articles, accessibles uniquement aux auteurs
-Route::middleware(['auth', 'check.author'])->group(function () {
+Route::middleware(['auth', CheckAuthorRole::class])->group(function () {
     Route::get('articles/create', [ArticleController::class, 'create'])->name('articles.create');
     Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
     Route::get('articles/{article}/edit', [ArticleController::class, 'edit'])->name('articles.edit');

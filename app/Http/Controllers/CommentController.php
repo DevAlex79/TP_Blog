@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Comment;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+
 
 class CommentController extends Controller
 {
@@ -43,9 +46,17 @@ class CommentController extends Controller
 
 
             // Vérifie que l'utilisateur est authentifié
-        if (!Auth::check()) {
-            return redirect()->route('articles.show', $article)->with('error', 'Vous devez être connecté pour commenter.');
+        // if (!Auth::check()) {
+        //     return redirect()->route('articles.show', $article)->with('error', 'Vous devez être connecté pour commenter.');
+        // }
+
+         // Vérifier que l'utilisateur n'est pas un auteur
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user && $user->isAuthor()) {
+            return redirect()->route('articles.show', $article)->with('error', 'Les auteurs ne peuvent pas commenter.');
         }
+        
 
         Comment::create([
             'comment' => $request->comment,
@@ -78,6 +89,9 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment)
     {
+        //$this->authorize('update', $comment);
+        Gate::authorize('update', $comment);
+
         $request->validate([
             'comment' => 'required|string',
         ]);
@@ -94,6 +108,9 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment)
     {
+        //$this->authorize('delete', $comment);
+        Gate::authorize('delete', $comment);
+
         $comment->delete();
         return redirect()->route('articles.show', $comment->article)->with('success', 'Commentaire supprimé avec succès.');
     }
