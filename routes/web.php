@@ -14,7 +14,15 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Routes resource pour les articles
-Route::resource('articles', ArticleController::class);
+Route::resource('articles', ArticleController::class)->except(['create', 'store', 'edit', 'update']);
+
+// Routes protégées pour créer, modifier, mettre à jour les articles, accessibles uniquement aux auteurs
+Route::middleware(['auth', 'check.author'])->group(function () {
+    Route::get('articles/create', [ArticleController::class, 'create'])->name('articles.create');
+    Route::post('articles', [ArticleController::class, 'store'])->name('articles.store');
+    Route::get('articles/{article}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
+    Route::put('articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
+});
 
 // Route pour ajouter des commentaires aux articles
 Route::post('articles/{article}/comments', [CommentController::class, 'store'])->name('comments.store');
